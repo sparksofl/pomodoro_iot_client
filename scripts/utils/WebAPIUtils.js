@@ -97,6 +97,24 @@ module.exports = {
           }
         }
       });
+  },
+
+  updateTask: function(taskId) {
+    request.patch(APIEndpoints.TASKS + '/' + taskId)
+      .set('Accept', 'application/json')
+      .set('Authorization', sessionStorage.getItem('accessToken'))
+      .send({ task: { id: taskId } })
+      .end(function(error, res){
+        if (res) {
+          if (res.error) {
+            var errorMsgs = _getErrors(res);
+            ServerActionCreators.receiveTasks(null, errorMsgs);
+          } else {
+            json = JSON.parse(res.text);
+            ServerActionCreators.receiveTasks(json, null);
+          }
+        }
+      });
   }
 
 };

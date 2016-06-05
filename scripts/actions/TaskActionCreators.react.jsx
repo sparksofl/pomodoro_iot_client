@@ -28,6 +28,14 @@ module.exports = {
       tags: tags
     });
     WebAPIUtils.createTask(name, tags);
+  },
+
+  updateTask: function(taskId) {
+    SmallAppDispatcher.handleViewAction({
+      type: ActionTypes.SET_CURRENT_TASK,
+      taskId: taskId
+    });
+    WebAPIUtils.updateTask(taskId);
   }
 
 };

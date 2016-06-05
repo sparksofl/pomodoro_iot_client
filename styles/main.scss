@@ -132,3 +132,14 @@ body {
 .task__date {
   font-family: 'Lato Light'
 }
+
+.current {
+  float: right;
+}
+
+.current-state {
+  background: #0dc30d;
+  padding: 10px;
+  border-radius: 4px;
+  color: #fff;
+}

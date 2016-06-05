@@ -46,6 +46,11 @@ var TasksPage = React.createClass({
 });
 
 var TaskItem = React.createClass({
+  updateTask: function(e) {
+    e.preventDefault();
+    TaskActionCreators.updateTask(this.props.task.id);
+  },
+
   render: function() {
     return (
       <div className="task">
@@ -55,6 +60,9 @@ var TaskItem = React.createClass({
               {this.props.task.name}
             </Link>
           </h3>
+          { this.props.task.current ? <span className="current current-state">Current</span> :
+                                      <a className="current" href='set_current' onClick={this.updateTask}>Set as current</a>
+          }
         </div>
         <div className="task__body">{this.props.task.tags}</div>
         <span className="task__date"><em> - {moment(this.props.task.created_at).fromNow()}</em></span>

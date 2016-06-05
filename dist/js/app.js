@@ -29278,6 +29278,14 @@ module.exports = {
       tags: tags
     });
     WebAPIUtils.createTask(name, tags);
+  },
+
+  updateTask: function(taskId) {
+    SmallAppDispatcher.handleViewAction({
+      type: ActionTypes.SET_CURRENT_TASK,
+      taskId: taskId
+    });
+    WebAPIUtils.updateTask(taskId);
   }
 
 };
@@ -29694,6 +29702,11 @@ var TasksPage = React.createClass({displayName: "TasksPage",
 });
 
 var TaskItem = React.createClass({displayName: "TaskItem",
+  updateTask: function(e) {
+    e.preventDefault();
+    TaskActionCreators.updateTask(this.props.task.id);
+  },
+
   render: function() {
     return (
       React.createElement("div", {className: "task"}, 
@@ -29702,7 +29715,10 @@ var TaskItem = React.createClass({displayName: "TaskItem",
             React.createElement(Link, {to: "task", params:  {taskId: this.props.task.id} }, 
               this.props.task.name
             )
-          )
+          ), 
+           this.props.task.current ? React.createElement("span", {className: "current current-state"}, "Current") :
+                                      React.createElement("a", {className: "current", href: "set_current", onClick: this.updateTask}, "Set as current")
+          
         ), 
         React.createElement("div", {className: "task__body"}, this.props.task.tags), 
         React.createElement("span", {className: "task__date"}, React.createElement("em", null, " - ", moment(this.props.task.created_at).fromNow()))
@@ -29756,7 +29772,8 @@ module.exports = {
     LOAD_TASK: null,
     RECEIVE_TASK : null,
     CREATE_TASK: null,
-    RECEIVE_CREATED_TASK : null
+    RECEIVE_CREATED_TASK : null,
+    SET_CURRENT_TASK: null
   })
 
 };
@@ -29809,7 +29826,8 @@ module.exports = (
     React.createElement(Route, {name: "signup", path: "/signup", handler: SignupPage}), 
     React.createElement(Route, {name: "tasks", path: "/tasks", handler: TasksPage}), 
     React.createElement(Route, {name: "task", path: "/tasks/:taskId", handler: TaskPage}), 
-    React.createElement(Route, {name: "new-task", path: "/task/new", handler: TaskNew})
+    React.createElement(Route, {name: "new-task", path: "/task/new", handler: TaskNew}), 
+    React.createElement(Route, {name: "set_current", path: "/tasks/:taskId"})
   )
 );
 
@@ -30045,6 +30063,17 @@ TaskStore.dispatchToken = SmallAppDispatcher.register(function(payload) {
       }
       TaskStore.emitChange();
       break;
+
+    case ActionTypes.SET_CURRENT_TASK:
+      if (action.json) {
+        _task = action.json.task;
+        _errors = [];
+      }
+      if (action.errors) {
+        _errors = action.errors;
+      }
+      TaskStore.emitChange();
+      break;
   }
 
   return true;
@@ -30149,6 +30178,24 @@ module.exports = {
           } else {
             json = JSON.parse(res.text);
             ServerActionCreators.receiveCreatedTask(json, null);
+          }
+        }
+      });
+  },
+
+  updateTask: function(taskId) {
+    request.patch(APIEndpoints.TASKS + '/' + taskId)
+      .set('Accept', 'application/json')
+      .set('Authorization', sessionStorage.getItem('accessToken'))
+      .send({ task: { id: taskId } })
+      .end(function(error, res){
+        if (res) {
+          if (res.error) {
+            var errorMsgs = _getErrors(res);
+            ServerActionCreators.receiveTasks(null, errorMsgs);
+          } else {
+            json = JSON.parse(res.text);
+            ServerActionCreators.receiveTasks(json, null);
           }
         }
       });
