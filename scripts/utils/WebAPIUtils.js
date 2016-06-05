@@ -81,11 +81,11 @@ module.exports = {
       });
   },
 
-  createTask: function(name, tags) {
+  createTask: function(name, estimate, tags) {
     request.post(APIEndpoints.TASKS)
       .set('Accept', 'application/json')
       .set('Authorization', sessionStorage.getItem('accessToken'))
-      .send({ task: { name: name, tags: tags } })
+      .send({ task: { name: name, estimate: estimate, tags: tags } })
       .end(function(error, res){
         if (res) {
           if (res.error) {
@@ -101,6 +101,24 @@ module.exports = {
 
   updateTask: function(taskId) {
     request.patch(APIEndpoints.TASKS + '/' + taskId)
+      .set('Accept', 'application/json')
+      .set('Authorization', sessionStorage.getItem('accessToken'))
+      .send({ task: { id: taskId } })
+      .end(function(error, res){
+        if (res) {
+          if (res.error) {
+            var errorMsgs = _getErrors(res);
+            ServerActionCreators.receiveTasks(null, errorMsgs);
+          } else {
+            json = JSON.parse(res.text);
+            ServerActionCreators.receiveTasks(json, null);
+          }
+        }
+      });
+  },
+
+  deleteTask: function(taskId) {
+    request.delete(APIEndpoints.TASKS + '/' + taskId)
       .set('Accept', 'application/json')
       .set('Authorization', sessionStorage.getItem('accessToken'))
       .send({ task: { id: taskId } })

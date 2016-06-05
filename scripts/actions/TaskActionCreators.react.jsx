@@ -21,13 +21,14 @@ module.exports = {
     WebAPIUtils.loadTask(taskId);
   },
 
-  createTask: function(name, tags) {
+  createTask: function(name, estimate, tags) {
     SmallAppDispatcher.handleViewAction({
       type: ActionTypes.CREATE_TASK,
       name: name,
+      estimate: estimate,
       tags: tags
     });
-    WebAPIUtils.createTask(name, tags);
+    WebAPIUtils.createTask(name, estimate, tags);
   },
 
   updateTask: function(taskId) {
@@ -36,7 +37,16 @@ module.exports = {
       taskId: taskId
     });
     WebAPIUtils.updateTask(taskId);
+  },
+
+ deleteTask: function(taskId) {
+    SmallAppDispatcher.handleViewAction({
+      type: ActionTypes.DELETE_TASK,
+      taskId: taskId
+    });
+    WebAPIUtils.deleteTask(taskId);
   }
+
 
 };
 

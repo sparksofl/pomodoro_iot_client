@@ -8,7 +8,8 @@ var Header = React.createClass({
 
   propTypes: {
     isLoggedIn: ReactPropTypes.bool,
-    email: ReactPropTypes.string
+    email: ReactPropTypes.string,
+    timer_token: ReactPropTypes.string
   },
   logout: function(e) {
     e.preventDefault();
@@ -21,6 +22,7 @@ var Header = React.createClass({
           <a href="#">{this.props.email}</a>
           <ul className="dropdown">
             <li><a href='#' onClick={this.logout}>Logout</a></li>
+            <li className="timer_token">{this.props.timer_token}</li>
           </ul>
         </li>
       </ul>

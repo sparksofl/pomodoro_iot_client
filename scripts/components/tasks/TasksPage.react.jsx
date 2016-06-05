@@ -51,6 +51,11 @@ var TaskItem = React.createClass({
     TaskActionCreators.updateTask(this.props.task.id);
   },
 
+  deleteTask: function(e) {
+    e.preventDefault();
+    TaskActionCreators.deleteTask(this.props.task.id);
+  },
+
   render: function() {
     return (
       <div className="task">
@@ -59,13 +64,18 @@ var TaskItem = React.createClass({
             <Link to="task" params={ {taskId: this.props.task.id} }>
               {this.props.task.name}
             </Link>
+            <span className="current estimate">{this.props.task.progress}</span>
           </h3>
           { this.props.task.current ? <span className="current current-state">Current</span> :
                                       <a className="current" href='set_current' onClick={this.updateTask}>Set as current</a>
           }
         </div>
         <div className="task__body">{this.props.task.tags}</div>
-        <span className="task__date"><em> - {moment(this.props.task.created_at).fromNow()}</em></span>
+        <div className="task__body">{this.props.task.time_spent}</div>
+        <div className="task__date current created">created {moment(this.props.task.created_at).fromNow()}</div>
+        <div className="delete">
+          <a className="current" href='delete_task' onClick={this.deleteTask}>&#x2715;</a>
+        </div>
       </div>
       );
   }

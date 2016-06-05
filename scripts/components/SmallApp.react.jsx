@@ -7,7 +7,8 @@ var RouteStore = require('../stores/RouteStore.react.jsx');
 function getStateFromStores() {
   return {
     isLoggedIn: SessionStore.isLoggedIn(),
-    email: SessionStore.getEmail()
+    email: SessionStore.getEmail(),
+    timer_token: SessionStore.getTimerToken()
   };
 }
 
@@ -16,7 +17,7 @@ var SmallApp = React.createClass({
   getInitialState: function() {
     return getStateFromStores();
   },
-  
+
   componentDidMount: function() {
     SessionStore.addChangeListener(this._onChange);
   },
@@ -32,9 +33,10 @@ var SmallApp = React.createClass({
   render: function() {
     return (
       <div className="app">
-        <Header 
+        <Header
           isLoggedIn={this.state.isLoggedIn}
-          email={this.state.email} />
+          email={this.state.email}
+          timer_token={this.state.timer_token} />
         <RouteHandler/>
       </div>
     );

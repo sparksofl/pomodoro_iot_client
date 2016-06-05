@@ -29271,13 +29271,14 @@ module.exports = {
     WebAPIUtils.loadTask(taskId);
   },
 
-  createTask: function(name, tags) {
+  createTask: function(name, estimate, tags) {
     SmallAppDispatcher.handleViewAction({
       type: ActionTypes.CREATE_TASK,
       name: name,
+      estimate: estimate,
       tags: tags
     });
-    WebAPIUtils.createTask(name, tags);
+    WebAPIUtils.createTask(name, estimate, tags);
   },
 
   updateTask: function(taskId) {
@@ -29286,7 +29287,16 @@ module.exports = {
       taskId: taskId
     });
     WebAPIUtils.updateTask(taskId);
+  },
+
+ deleteTask: function(taskId) {
+    SmallAppDispatcher.handleViewAction({
+      type: ActionTypes.DELETE_TASK,
+      taskId: taskId
+    });
+    WebAPIUtils.deleteTask(taskId);
   }
+
 
 };
 
@@ -29310,7 +29320,8 @@ var Header = React.createClass({displayName: "Header",
 
   propTypes: {
     isLoggedIn: ReactPropTypes.bool,
-    email: ReactPropTypes.string
+    email: ReactPropTypes.string,
+    timer_token: ReactPropTypes.string
   },
   logout: function(e) {
     e.preventDefault();
@@ -29322,7 +29333,8 @@ var Header = React.createClass({displayName: "Header",
         React.createElement("li", {className: "has-dropdown"}, 
           React.createElement("a", {href: "#"}, this.props.email), 
           React.createElement("ul", {className: "dropdown"}, 
-            React.createElement("li", null, React.createElement("a", {href: "#", onClick: this.logout}, "Logout"))
+            React.createElement("li", null, React.createElement("a", {href: "#", onClick: this.logout}, "Logout")), 
+            React.createElement("li", {className: "timer_token"}, this.props.timer_token)
           )
         )
       )
@@ -29371,7 +29383,8 @@ var RouteStore = require('../stores/RouteStore.react.jsx');
 function getStateFromStores() {
   return {
     isLoggedIn: SessionStore.isLoggedIn(),
-    email: SessionStore.getEmail()
+    email: SessionStore.getEmail(),
+    timer_token: SessionStore.getTimerToken()
   };
 }
 
@@ -29380,7 +29393,7 @@ var SmallApp = React.createClass({displayName: "SmallApp",
   getInitialState: function() {
     return getStateFromStores();
   },
-  
+
   componentDidMount: function() {
     SessionStore.addChangeListener(this._onChange);
   },
@@ -29398,7 +29411,8 @@ var SmallApp = React.createClass({displayName: "SmallApp",
       React.createElement("div", {className: "app"}, 
         React.createElement(Header, {
           isLoggedIn: this.state.isLoggedIn, 
-          email: this.state.email}), 
+          email: this.state.email, 
+          timer_token: this.state.timer_token}), 
         React.createElement(RouteHandler, null)
       )
     );
@@ -29579,8 +29593,9 @@ var TaskNew = React.createClass({displayName: "TaskNew",
   _onSubmit: function(e) {
     e.preventDefault();
     var name = this.refs.name.getDOMNode().value;
+    var estimate = this.refs.estimate.getDOMNode().value;
     var tags = this.refs.tags.getDOMNode().value;
-    TaskActionCreators.createTask(name, tags);
+    TaskActionCreators.createTask(name, estimate, tags);
   },
 
   render: function() {
@@ -29590,6 +29605,9 @@ var TaskNew = React.createClass({displayName: "TaskNew",
           React.createElement("form", {onSubmit: this._onSubmit, className: "new-task"}, 
             React.createElement("div", {className: "new-task__name"}, 
               React.createElement("input", {type: "text", placeholder: "name", name: "name", ref: "name"})
+            ), 
+            React.createElement("div", {className: "new-task__estimate"}, 
+              React.createElement("input", {type: "number", placeholder: "estimate", estimate: "estimate", ref: "estimate"})
             ), 
             React.createElement("div", {className: "new-task__tags"}, 
               React.createElement("input", {type: "text", placeholder: "tags", tags: "tags", ref: "tags"})
@@ -29707,6 +29725,11 @@ var TaskItem = React.createClass({displayName: "TaskItem",
     TaskActionCreators.updateTask(this.props.task.id);
   },
 
+  deleteTask: function(e) {
+    e.preventDefault();
+    TaskActionCreators.deleteTask(this.props.task.id);
+  },
+
   render: function() {
     return (
       React.createElement("div", {className: "task"}, 
@@ -29714,14 +29737,19 @@ var TaskItem = React.createClass({displayName: "TaskItem",
           React.createElement("h3", null, 
             React.createElement(Link, {to: "task", params:  {taskId: this.props.task.id} }, 
               this.props.task.name
-            )
+            ), 
+            React.createElement("span", {className: "current estimate"}, this.props.task.progress)
           ), 
            this.props.task.current ? React.createElement("span", {className: "current current-state"}, "Current") :
                                       React.createElement("a", {className: "current", href: "set_current", onClick: this.updateTask}, "Set as current")
           
         ), 
         React.createElement("div", {className: "task__body"}, this.props.task.tags), 
-        React.createElement("span", {className: "task__date"}, React.createElement("em", null, " - ", moment(this.props.task.created_at).fromNow()))
+        React.createElement("div", {className: "task__body"}, this.props.task.time_spent), 
+        React.createElement("div", {className: "task__date current created"}, "created ", moment(this.props.task.created_at).fromNow()), 
+        React.createElement("div", {className: "delete"}, 
+          React.createElement("a", {className: "current", href: "delete_task", onClick: this.deleteTask}, "✕")
+        )
       )
       );
   }
@@ -29773,7 +29801,8 @@ module.exports = {
     RECEIVE_TASK : null,
     CREATE_TASK: null,
     RECEIVE_CREATED_TASK : null,
-    SET_CURRENT_TASK: null
+    SET_CURRENT_TASK: null,
+    DELETE_TASK: null
   })
 
 };
@@ -29827,7 +29856,8 @@ module.exports = (
     React.createElement(Route, {name: "tasks", path: "/tasks", handler: TasksPage}), 
     React.createElement(Route, {name: "task", path: "/tasks/:taskId", handler: TaskPage}), 
     React.createElement(Route, {name: "new-task", path: "/task/new", handler: TaskNew}), 
-    React.createElement(Route, {name: "set_current", path: "/tasks/:taskId"})
+    React.createElement(Route, {name: "set_current", path: "/tasks/:taskId"}), 
+    React.createElement(Route, {name: "delete_task", path: "/tasks/:taskId"})
   )
 );
 
@@ -29921,6 +29951,7 @@ var CHANGE_EVENT = 'change';
 // a 'remember me' using localSgorage
 var _accessToken = sessionStorage.getItem('accessToken');
 var _email = sessionStorage.getItem('email');
+var _timer_token = sessionStorage.getItem('timer_token');
 var _errors = [];
 
 var SessionStore = assign({}, EventEmitter.prototype, {
@@ -29949,6 +29980,10 @@ var SessionStore = assign({}, EventEmitter.prototype, {
     return _email;
   },
 
+  getTimerToken: function() {
+    return _timer_token;
+  },
+
   getErrors: function() {
     return _errors;
   }
@@ -29964,9 +29999,11 @@ SessionStore.dispatchToken = SmallAppDispatcher.register(function(payload) {
       if (action.json && action.json.access_token) {
         _accessToken = action.json.access_token;
         _email = action.json.email;
+        _timer_token = action.json.timer_token;
         // Token will always live in the session, so that the API can grab it with no hassle
         sessionStorage.setItem('accessToken', _accessToken);
         sessionStorage.setItem('email', _email);
+        sessionStorage.setItem('timer_token', _timer_token);
       }
       if (action.errors) {
         _errors = action.errors;
@@ -29979,6 +30016,7 @@ SessionStore.dispatchToken = SmallAppDispatcher.register(function(payload) {
       _email = null;
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('email');
+      sessionStorage.removeItem('timer_token');
       SessionStore.emitChange();
       break;
 
@@ -30065,6 +30103,17 @@ TaskStore.dispatchToken = SmallAppDispatcher.register(function(payload) {
       break;
 
     case ActionTypes.SET_CURRENT_TASK:
+      if (action.json) {
+        _task = action.json.task;
+        _errors = [];
+      }
+      if (action.errors) {
+        _errors = action.errors;
+      }
+      TaskStore.emitChange();
+      break;
+
+    case ActionTypes.DELETE_TASK:
       if (action.json) {
         _task = action.json.task;
         _errors = [];
@@ -30165,11 +30214,11 @@ module.exports = {
       });
   },
 
-  createTask: function(name, tags) {
+  createTask: function(name, estimate, tags) {
     request.post(APIEndpoints.TASKS)
       .set('Accept', 'application/json')
       .set('Authorization', sessionStorage.getItem('accessToken'))
-      .send({ task: { name: name, tags: tags } })
+      .send({ task: { name: name, estimate: estimate, tags: tags } })
       .end(function(error, res){
         if (res) {
           if (res.error) {
@@ -30185,6 +30234,24 @@ module.exports = {
 
   updateTask: function(taskId) {
     request.patch(APIEndpoints.TASKS + '/' + taskId)
+      .set('Accept', 'application/json')
+      .set('Authorization', sessionStorage.getItem('accessToken'))
+      .send({ task: { id: taskId } })
+      .end(function(error, res){
+        if (res) {
+          if (res.error) {
+            var errorMsgs = _getErrors(res);
+            ServerActionCreators.receiveTasks(null, errorMsgs);
+          } else {
+            json = JSON.parse(res.text);
+            ServerActionCreators.receiveTasks(json, null);
+          }
+        }
+      });
+  },
+
+  deleteTask: function(taskId) {
+    request.delete(APIEndpoints.TASKS + '/' + taskId)
       .set('Accept', 'application/json')
       .set('Authorization', sessionStorage.getItem('accessToken'))
       .send({ task: { id: taskId } })

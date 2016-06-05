@@ -29,7 +29,8 @@ module.exports = {
     RECEIVE_TASK : null,
     CREATE_TASK: null,
     RECEIVE_CREATED_TASK : null,
-    SET_CURRENT_TASK: null
+    SET_CURRENT_TASK: null,
+    DELETE_TASK: null
   })
 
 };

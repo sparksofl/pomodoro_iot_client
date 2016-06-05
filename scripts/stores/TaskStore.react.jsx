@@ -81,6 +81,17 @@ TaskStore.dispatchToken = SmallAppDispatcher.register(function(payload) {
       }
       TaskStore.emitChange();
       break;
+
+    case ActionTypes.DELETE_TASK:
+      if (action.json) {
+        _task = action.json.task;
+        _errors = [];
+      }
+      if (action.errors) {
+        _errors = action.errors;
+      }
+      TaskStore.emitChange();
+      break;
   }
 
   return true;

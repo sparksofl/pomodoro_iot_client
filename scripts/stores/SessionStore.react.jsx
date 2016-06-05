@@ -10,6 +10,7 @@ var CHANGE_EVENT = 'change';
 // a 'remember me' using localSgorage
 var _accessToken = sessionStorage.getItem('accessToken');
 var _email = sessionStorage.getItem('email');
+var _timer_token = sessionStorage.getItem('timer_token');
 var _errors = [];
 
 var SessionStore = assign({}, EventEmitter.prototype, {
@@ -38,6 +39,10 @@ var SessionStore = assign({}, EventEmitter.prototype, {
     return _email;
   },
 
+  getTimerToken: function() {
+    return _timer_token;
+  },
+
   getErrors: function() {
     return _errors;
   }
@@ -53,9 +58,11 @@ SessionStore.dispatchToken = SmallAppDispatcher.register(function(payload) {
       if (action.json && action.json.access_token) {
         _accessToken = action.json.access_token;
         _email = action.json.email;
+        _timer_token = action.json.timer_token;
         // Token will always live in the session, so that the API can grab it with no hassle
         sessionStorage.setItem('accessToken', _accessToken);
         sessionStorage.setItem('email', _email);
+        sessionStorage.setItem('timer_token', _timer_token);
       }
       if (action.errors) {
         _errors = action.errors;
@@ -68,6 +75,7 @@ SessionStore.dispatchToken = SmallAppDispatcher.register(function(payload) {
       _email = null;
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('email');
+      sessionStorage.removeItem('timer_token');
       SessionStore.emitChange();
       break;
 

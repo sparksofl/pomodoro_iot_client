@@ -19,6 +19,7 @@ module.exports = (
     <Route name="task" path="/tasks/:taskId" handler={TaskPage} />
     <Route name="new-task" path="/task/new" handler={TaskNew}/>
     <Route name="set_current" path="/tasks/:taskId"/>
+    <Route name="delete_task" path="/tasks/:taskId"/>
   </Route>
 );
 
