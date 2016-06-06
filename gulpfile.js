@@ -1,5 +1,4 @@
 'use strict';
-import Pusher from 'pusher-js/react-native';
 var gulp = require('gulp'),
     gulpFilter = require('gulp-filter'),
     flatten = require('gulp-flatten'),
