@@ -149,7 +149,7 @@ body {
   font-family: 'Lato Light'
 }
 
-.task__date.current.created span {
+.task__date.current.created span, .card--login__field label {
   font-family: 'Roboto', sans-serif;
   font-weight: 100;
 }
