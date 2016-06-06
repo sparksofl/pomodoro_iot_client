@@ -7,6 +7,19 @@ var Router = require('react-router');
 var Link = Router.Link;
 var moment = require('moment');
 
+
+
+Pusher.logToConsole = true;
+var pusher = new Pusher('1991c289a458393cc0e0', {
+  encrypted: true
+});
+
+var channel = pusher.subscribe('test_channel');
+channel.bind('my_event', function(data) {
+  TaskActionCreators.loadTasks();
+});
+
+
 var TasksPage = React.createClass({
 
   getInitialState: function() {
@@ -33,6 +46,7 @@ var TasksPage = React.createClass({
   },
 
   render: function() {
+
     var errors = (this.state.errors.length > 0) ? <ErrorNotice errors={this.state.errors}/> : <div></div>;
     return (
       <div>

@@ -29681,6 +29681,19 @@ var Router = require('react-router');
 var Link = Router.Link;
 var moment = require('moment');
 
+
+
+Pusher.logToConsole = true;
+var pusher = new Pusher('1991c289a458393cc0e0', {
+  encrypted: true
+});
+
+var channel = pusher.subscribe('test_channel');
+channel.bind('my_event', function(data) {
+  TaskActionCreators.loadTasks();
+});
+
+
 var TasksPage = React.createClass({displayName: "TasksPage",
 
   getInitialState: function() {
@@ -29707,6 +29720,7 @@ var TasksPage = React.createClass({displayName: "TasksPage",
   },
 
   render: function() {
+
     var errors = (this.state.errors.length > 0) ? React.createElement(ErrorNotice, {errors: this.state.errors}) : React.createElement("div", null);
     return (
       React.createElement("div", null, 
